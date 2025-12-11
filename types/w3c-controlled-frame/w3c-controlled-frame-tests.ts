@@ -263,3 +263,60 @@ async function testControlledFrame() {
         beforeRequestListener as EventListenerOrEventListenerObject,
     );
 }
+
+function testTagNameMap() {
+    // This string must match what you put in HTMLElementTagNameMap.
+    // If the map works, TS infers 'HTMLControlledFrameElement'.
+    const frame = document.createElement("controlledframe");
+
+    // $ExpectType HTMLControlledFrameElement
+    frame;
+
+    // Verify we can access specific properties without casting
+    // (This would fail if it returned a generic HTMLElement)
+    frame.src = "https://example.com";
+    frame.back();
+
+
+    // Selectors are trickier, but tag selectors should work.
+    const queriedFrame = document.querySelector("controlledframe");
+
+    // $ExpectType HTMLControlledFrameElement | null
+    queriedFrame;
+
+    if (queriedFrame) {
+        queriedFrame.reload(); // Should compile
+    }
+}
+
+function testEventListeners(frame: HTMLControlledFrameElement) {
+    // We do NOT add specific types to 'e'. We let TS infer them.
+    frame.addEventListener("consolemessage", (e) => {
+        // $ExpectType ConsoleMessageEvent
+        e;
+
+        // This property exists ONLY on ConsoleMessageEvent.
+        // If inference failed (and it fell back to generic Event), this would error.
+        console.log(e.consoleMessage.level);
+    });
+
+    frame.contextMenus.addEventListener("click", (e) => {
+        // $ExpectType ContextMenusClickEvent
+        e;
+        console.log(e.menuItem.id);
+    });
+
+    frame.addEventListener("consolemessage", (e) => {
+        // @ts-expect-error
+        // Error: Property 'menuItem' does not exist on type 'ConsoleMessageEvent'.
+        console.log(e.menuItem);
+    });
+
+    frame.addEventListener("loadcommit", function (e) {
+        // $ExpectType HTMLControlledFrameElement
+        this;
+
+        // We can access the element's properties via 'this'
+        this.reload();
+    });
+}

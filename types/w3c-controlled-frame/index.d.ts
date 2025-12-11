@@ -781,3 +781,9 @@ declare global {
         readonly srcURL: string | null;
     }
 }
+
+declare global {
+    interface HTMLElementTagNameMap {
+        "controlledframe": HTMLControlledFrameElement;
+    }
+}
