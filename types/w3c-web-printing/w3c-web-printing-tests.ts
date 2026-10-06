@@ -105,10 +105,13 @@ async function testWebPrintingApi() {
     // WebPrintingManager (Window Augmentation)
     // --------------------------------------------------------------------------------
 
-    if (window.printing) {
+    if (window.printing instanceof WebPrintingManager) {
         const printingManager = window.printing;
         // $ExpectType WebPrintingManager
         printingManager;
+
+        // $ExpectType WebPrintingManager
+        WebPrintingManager.prototype;
 
         // $ExpectType Promise<WebPrinter[]>
         printingManager.getPrinters();
@@ -121,7 +124,15 @@ async function testWebPrintingApi() {
     // WebPrinter & WebPrinterAttributes
     // --------------------------------------------------------------------------------
 
-    const printer: WebPrinter = {} as WebPrinter;
+    // $ExpectType WebPrinter
+    WebPrinter.prototype;
+
+    const printers = await printing.getPrinters();
+    const printer = printers[0];
+    if (printer instanceof WebPrinter) {
+        // $ExpectType WebPrinter
+        printer;
+    }
 
     const cachedAttrs = printer.cachedAttributes();
     // $ExpectType WebPrinterAttributes
@@ -167,7 +178,14 @@ async function testWebPrintingApi() {
     // WebPrintJob & Events
     // --------------------------------------------------------------------------------
 
-    const printJob: WebPrintJob = {} as WebPrintJob;
+    // $ExpectType WebPrintJob
+    WebPrintJob.prototype;
+
+    const printJob = await printJobPromise;
+    if (printJob instanceof WebPrintJob) {
+        // $ExpectType WebPrintJob
+        printJob;
+    }
 
     const jobAttrs = printJob.attributes();
     // $ExpectType WebPrintJobAttributes

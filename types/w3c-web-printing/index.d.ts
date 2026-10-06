@@ -10,13 +10,23 @@ declare var printing: WebPrintingManager;
 
 interface WebPrintingManager {
     /**
-     * Retrieves a list of available web printers accessible to the system.
+     * Retrieves a list of available web printers accessible to the application.
      * @return A Promise that resolves to an array of WebPrinter objects
      *   representing the available printers.
-     * @throws {NotAllowedError} If the access to web printing is not allowed.
+     * @throws {NotAllowedError} If the frame is not sufficiently isolated, the
+     *   "web-printing" Permissions Policy is disabled, or the user denies
+     *   permission.
+     * @throws {SecurityError} If the Web Printing API is not accessible in the
+     *   current configuration.
+     * @throws {NotSupportedError} If the current execution context is detached.
      */
     getPrinters(): Promise<WebPrinter[]>;
 }
+
+declare var WebPrintingManager: {
+    prototype: WebPrintingManager;
+    new(): WebPrintingManager;
+};
 
 type WebPrintingMimeMediaType = "application/pdf";
 
@@ -96,11 +106,11 @@ interface WebPrintingRange {
 }
 
 interface WebPrintingResolution {
-    /** The resolution in the cross-feed direction, measured in units per distance. */
+    /** Resolution in the cross-feed direction. */
     crossFeedDirectionResolution?: number;
-    /** The resolution in the feed direction, measured in units per distance. */
+    /** Resolution in the feed direction. */
     feedDirectionResolution?: number;
-    /** The unit of measurement used for the resolution values. */
+    /** The units used for the resolution values. */
     units?: WebPrintingResolutionUnits;
 }
 
@@ -114,16 +124,16 @@ interface WebPrintingMediaSize {
 }
 
 interface WebPrintingMediaCollection {
-    /** A string representing the name of the media size. */
+    /** A string representing the name of the media collection. */
     mediaSizeName?: string;
-    /** The dimensions associated with the media size collection. */
+    /** The media size associated with the collection. */
     mediaSize?: WebPrintingMediaSize;
 }
 
 interface WebPrintingMediaSizeRequested {
-    /** The requested vertical dimension. */
+    /** The requested vertical dimension of the media size. */
     yDimension: number;
-    /** The requested horizontal dimension. */
+    /** The requested horizontal dimension of the media size. */
     xDimension: number;
 }
 
@@ -135,21 +145,21 @@ interface WebPrintingMediaCollectionRequested {
 interface WebPrintJobTemplateAttributes {
     /** The number of copies to be printed. */
     copies?: number;
-    /** The requested media collection for the print job. */
+    /** The requested media collection attributes for the print job. */
     mediaCol?: WebPrintingMediaCollectionRequested;
-    /** A string representing the input tray or source for the media. */
+    /** A string representing the input source or tray for the media. */
     mediaSource?: string;
-    /** Specifies how multiple documents are handled in the print job. */
+    /** The handling method for multiple documents in a print job. */
     multipleDocumentHandling?: WebPrintingMultipleDocumentHandling;
-    /** The requested orientation for the printed pages. */
+    /** The requested page orientation for the print job. */
     orientationRequested?: WebPrintingOrientationRequested;
-    /** The printer resolution settings for the job. */
+    /** The resolution settings for the print job. */
     printerResolution?: WebPrintingResolution;
-    /** The color mode used for printing, such as color or monochrome. */
+    /** The color mode to be used for printing. */
     printColorMode?: WebPrintColorMode;
-    /** The requested print quality level. */
+    /** The print quality setting. */
     printQuality?: WebPrintQuality;
-    /** Specifies whether printing is single-sided or double-sided. */
+    /** The sides printing mode (e.g., simplex or duplex). */
     sides?: WebPrintingSides;
     /** An AbortSignal that can be used to abort the print job operation. */
     signal?: AbortSignal;
@@ -166,81 +176,82 @@ interface WebPrinterAttributes {
     copiesSupported?: WebPrintingRange;
     /** The default media collection attribute. */
     mediaColDefault?: WebPrintingMediaCollection;
-    /** An array of supported media collections available on the printer. */
+    /** A sequence of supported media collections available on the printer. */
     mediaColDatabase?: WebPrintingMediaCollection[];
     /** A string representing the default media source. */
     mediaSourceDefault?: string;
-    /** An array of strings representing supported media sources. */
+    /** A sequence of strings representing supported media sources. */
     mediaSourceSupported?: string[];
     /** The default document format accepted by the printer. */
     documentFormatDefault?: WebPrintingMimeMediaType;
-    /** An array of supported document formats. */
+    /** A sequence of supported document formats. */
     documentFormatSupported?: WebPrintingMimeMediaType[];
-    /** The default multiple document handling setting. */
+    /** The default multiple document handling mode. */
     multipleDocumentHandlingDefault?: WebPrintingMultipleDocumentHandling;
-    /** An array of supported multiple document handling options. */
+    /** A sequence of supported multiple document handling modes. */
     multipleDocumentHandlingSupported?: WebPrintingMultipleDocumentHandling[];
-    /** The default orientation requested setting. */
+    /** The default orientation requested. */
     orientationRequestedDefault?: WebPrintingOrientationRequested;
-    /** An array of supported orientation options. */
+    /** A sequence of supported page orientations. */
     orientationRequestedSupported?: WebPrintingOrientationRequested[];
     /** The default printer resolution. */
     printerResolutionDefault?: WebPrintingResolution;
-    /** An array of supported printer resolutions. */
+    /** A sequence of supported printer resolutions. */
     printerResolutionSupported?: WebPrintingResolution[];
-    /** The default print color mode. */
+    /** The default color mode. */
     printColorModeDefault?: WebPrintColorMode;
-    /** An array of supported print color modes. */
+    /** A sequence of supported color modes. */
     printColorModeSupported?: WebPrintColorMode[];
     /** The current operational state of the printer. */
     printerState?: WebPrinterState;
     /**
-     * A human-readable string providing additional details about the printer
+     * A string representing additional details regarding the current printer
      * state.
      */
     printerStateMessage?: string;
-    /**
-     * An array of reasons detailing the current printer state, such as warnings or
-     * errors.
-     */
+    /** A sequence of reasons explaining the current printer state. */
     printerStateReasons?: WebPrinterStateReason[];
-    /** The default print quality level. */
+    /** The default print quality. */
     printQualityDefault?: WebPrintQuality;
-    /** An array of supported print quality levels. */
+    /** A sequence of supported print qualities. */
     printQualitySupported?: WebPrintQuality[];
-    /** The default sides printing setting. */
+    /** The default sides printing mode. */
     sidesDefault?: WebPrintingSides;
-    /** An array of supported sides printing options. */
+    /** A sequence of supported sides printing modes. */
     sidesSupported?: WebPrintingSides[];
 }
 
 interface WebPrinter {
-    /**
-     * Retrieves the currently cached attribute values for the printer without
-     * performing a network fetch.
-     * @return The cached attributes of the printer.
-     */
+    /** Synchronously returns the currently cached attributes of the web printer. */
     cachedAttributes(): WebPrinterAttributes;
     /**
-     * Fetches the current attributes and capabilities of the printer from the
-     * device.
-     * @return A Promise that resolves to the latest printer attributes.
-     * @throws {NetworkError} If communication with the printer fails.
+     * Fetches the latest attributes from the web printer asynchronously.
+     * @return A Promise that resolves to a WebPrinterAttributes object containing
+     *   the updated printer capabilities and settings.
+     * @throws {InvalidStateError} If a call to fetchAttributes() is already in
+     *   progress.
+     * @throws {NetworkError} If unable to connect to the printer.
+     * @throws {NotAllowedError} If user permission to access the Web Printing API
+     *   is denied.
+     * @throws {NotSupportedError} If the execution context has shut down.
      */
     fetchAttributes(): Promise<WebPrinterAttributes>;
     /**
-     * Submits a print job containing a document and specified configuration
-     * attributes to the printer.
+     * Submits a print job to the web printer with the specified document and
+     * template attributes.
      * @param job_name A string representing the name of the print job.
-     * @param document_data A Blob containing the raw data of the document to be
-     *   printed.
+     * @param document_data A Blob containing the document data to be printed.
      * @param attributes The template attributes defining print options such as
-     *   color, media size, and duplexing.
-     * @return A Promise that resolves to a WebPrintJob representing the submitted
-     *   job.
-     * @throws {NotAllowedError} If permission to print is denied.
-     * @throws {TypeError} If the document data is empty or the attributes are
-     *   invalid.
+     *   paper size, color mode, and orientation.
+     * @return A Promise that resolves to a WebPrintJob object representing the
+     *   submitted print job.
+     * @throws {TypeError} If the specified template attributes are invalid.
+     * @throws {DataError} If the requested attributes do not align with the
+     *   printer capabilities or the document data is malformed.
+     * @throws {NetworkError} If unable to connect to the printer.
+     * @throws {NotAllowedError} If user permission to access the Web Printing API
+     *   is denied.
+     * @throws {NotSupportedError} If the execution context has shut down.
      */
     submitPrintJob(
         job_name: string,
@@ -248,6 +259,11 @@ interface WebPrinter {
         attributes: WebPrintJobTemplateAttributes,
     ): Promise<WebPrintJob>;
 }
+
+declare var WebPrinter: {
+    prototype: WebPrinter;
+    new(): WebPrinter;
+};
 
 type WebPrintJobState =
     | "preliminary"
@@ -264,7 +280,7 @@ interface WebPrintJobAttributes {
     jobPages?: number;
     /** The number of pages that have been printed so far. */
     jobPagesCompleted?: number;
-    /** The current state of the print job. */
+    /** The current execution state of the print job. */
     jobState?: WebPrintJobState;
 }
 
@@ -275,13 +291,15 @@ interface WebPrintJobEventMap {
 interface WebPrintJob extends EventTarget {
     /**
      * Retrieves the current attributes of the print job.
-     * @return A WebPrintJobAttributes object containing details about the print
-     *   job.
+     * @return A WebPrintJobAttributes object containing the job's current details.
      */
     attributes(): WebPrintJobAttributes;
-    /** Requests the cancellation of the print job. */
+    /** Attempts to cancel the ongoing print job. */
     cancel(): void;
-    /** EventHandler invoked when the state of the print job changes. */
+    /**
+     * EventHandler for the jobstatechange event, triggered when the print job
+     * changes state.
+     */
     onjobstatechange: ((this: this, ev: Event) => any) | null;
 
     addEventListener<K extends keyof WebPrintJobEventMap>(
@@ -305,3 +323,8 @@ interface WebPrintJob extends EventTarget {
         options?: boolean | EventListenerOptions,
     ): void;
 }
+
+declare var WebPrintJob: {
+    prototype: WebPrintJob;
+    new(): WebPrintJob;
+};
